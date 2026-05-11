@@ -1465,6 +1465,16 @@ I saw this on your website and I'm interested in placing an order!`;
                   className="grayscale group-hover:grayscale-0 transition-all duration-1000"
                   title="Winnie's Flowers Location"
                 ></iframe>
+                <div className="pointer-events-none absolute left-1/2 top-1/2 z-10 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center">
+                  <div className="mb-3 rounded-full bg-white px-4 py-2 text-[10px] font-black uppercase tracking-widest text-brand-red shadow-2xl">
+                    Winnie's Flowers
+                  </div>
+                  <div className="relative flex h-20 w-20 items-center justify-center">
+                    <div className="absolute h-20 w-20 rounded-full border-4 border-brand-red bg-brand-red/10 animate-ping"></div>
+                    <div className="absolute h-14 w-14 rounded-full border-4 border-white bg-brand-red/80 shadow-2xl"></div>
+                    <MapPin className="relative z-10 h-8 w-8 text-white" />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
