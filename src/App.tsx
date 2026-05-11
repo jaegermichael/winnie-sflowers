@@ -52,6 +52,7 @@ import {
 } from './assets';
 
 const APP_DATA_KEY = 'winnies_flowers_packages_v3';
+const ADMIN_PASSWORD_HASH = '016b806ff2319d40a738ca345f063f5df05d736e45e76bc4ea04b648e427caed';
 
 export default function App() {
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
@@ -110,9 +111,17 @@ export default function App() {
     }));
   }
 
-  const handleAdminLogin = (e: React.FormEvent) => {
+  const hashPassword = async (password: string) => {
+    const bytes = new TextEncoder().encode(password);
+    const digest = await crypto.subtle.digest('SHA-256', bytes);
+    return Array.from(new Uint8Array(digest))
+      .map(byte => byte.toString(16).padStart(2, '0'))
+      .join('');
+  };
+
+  const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (adminPassword === 'Winnie123') {
+    if (await hashPassword(adminPassword) === ADMIN_PASSWORD_HASH) {
       setIsAdminLoggedIn(true);
       setShowAdminLogin(false);
       setAdminPassword('');
@@ -467,10 +476,11 @@ I saw this on your website and I'm interested in placing an order!`;
                 <form onSubmit={handleAdminLogin} className="space-y-6">
                   <input 
                     type="password"
-                    placeholder="Winnie123"
+                    placeholder="Enter admin password"
                     value={adminPassword}
                     onChange={(e) => setAdminPassword(e.target.value)}
                     className="w-full px-6 py-4 rounded-2xl bg-gray-50 border border-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-red/50 transition-all font-mono"
+                    autoComplete="current-password"
                     autoFocus
                   />
                   <button 
@@ -1446,7 +1456,7 @@ I saw this on your website and I'm interested in placing an order!`;
               </div>
               <div className="rounded-[3rem] overflow-hidden h-[550px] shadow-[0_40px_100px_-15px_rgba(0,0,0,0.2)] relative group">
                 <iframe 
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3732.162773229643!2d28.583!3d-20.150!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjDCsDA5JzAwLjAiUyAyOMKwMzUnMDAuMCJF!5e0!3m2!1sen!2szw!4v1620210000000!5m2!1sen!2szw" 
+                  src="https://maps.google.com/maps?q=Winnie%27s%20Flowers%20Nola%20Building%20Basement%20Shop%20104B%20Fort%20Street%20between%208th%20and%209th%20Avenue%20Bulawayo%20Zimbabwe%20near%20Booties%20Pharmacy&t=&z=18&ie=UTF8&iwloc=&output=embed" 
                   width="100%" 
                   height="100%" 
                   style={{ border: 0 }} 
