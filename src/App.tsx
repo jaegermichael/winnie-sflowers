@@ -1462,7 +1462,7 @@ I saw this on your website and I'm interested in placing an order!`;
                   style={{ border: 0 }} 
                   allowFullScreen 
                   loading="lazy"
-                  className="grayscale group-hover:grayscale-0 transition-all duration-1000"
+                  className="pointer-events-none grayscale group-hover:grayscale-0 transition-all duration-1000"
                   title="Winnie's Flowers Location"
                 ></iframe>
                 <div className="pointer-events-none absolute left-1/2 top-1/2 z-10 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center">
