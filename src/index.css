@@ -1,0 +1,41 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Playfair Display", Georgia, serif;
+  
+  --color-brand-red: #991b1b;
+  --color-brand-red-dark: #7f1d1d;
+  --color-brand-red-light: #b91c1c;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    @apply font-sans text-gray-900 bg-white antialiased;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif;
+  }
+}
+
+.bold-heading {
+  @apply font-serif leading-tight tracking-tight;
+}
+
+.accent-circle {
+  @apply absolute rounded-full mix-blend-multiply filter blur-3xl opacity-30;
+}
+
+.glass-card {
+  @apply bg-white/80 backdrop-blur-sm border border-gray-100 shadow-sm;
+}
+
+.input-field {
+  @apply w-full bg-gray-50 border-none rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-brand-red transition-all;
+}
