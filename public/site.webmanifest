@@ -1,0 +1,16 @@
+{
+  "name": "Winnie's Flowers",
+  "short_name": "Winnie's",
+  "description": "Bouquets, gift hampers and event flowers in Bulawayo.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#991b1b",
+  "icons": [
+    {
+      "src": "/images/logo.jpeg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    }
+  ]
+}
