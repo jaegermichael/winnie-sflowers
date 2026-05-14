@@ -1,0 +1,90 @@
+[
+  {
+    "id": "p1",
+    "name": "Signature Red Rose Bouquet",
+    "category": "Flower Bouquets",
+    "description": "Full red rose bouquet wrapped with baby's breath and premium paper.",
+    "price": "$40",
+    "image": "/images/package-40-red-rose.jpeg",
+    "isAvailable": true,
+    "isFeatured": true,
+    "showInGallery": true
+  },
+  {
+    "id": "p2",
+    "name": "Candy Bouquet",
+    "category": "Candy Bouquets",
+    "description": "Wrapped candy and chocolate bar bouquet for a simple, sweet surprise.",
+    "price": "$20",
+    "image": "/images/package-20-candy.jpeg",
+    "isAvailable": true,
+    "isFeatured": true,
+    "showInGallery": true
+  },
+  {
+    "id": "p3",
+    "name": "Money Rose Bouquet",
+    "category": "Money Bouquets",
+    "description": "Red roses surrounded by folded notes for a memorable celebration gift.",
+    "price": "$25",
+    "image": "/images/package-25-money.jpeg",
+    "isAvailable": true,
+    "isFeatured": true,
+    "showInGallery": true
+  },
+  {
+    "id": "p4",
+    "name": "Combo Gift Package",
+    "category": "Custom Combo Bouquets",
+    "description": "A coordinated combo with roses, money styling, and a matching gift box.",
+    "price": "$90",
+    "image": "/images/package-90-combo.jpeg",
+    "isAvailable": true,
+    "isFeatured": true,
+    "showInGallery": true
+  },
+  {
+    "id": "p5",
+    "name": "Premium Bridal Bouquet",
+    "category": "Wedding Flowers",
+    "description": "Large premium rose bouquet suited to weddings, introductions, and formal gifting.",
+    "price": "$150",
+    "image": "/images/package-150-premium.jpeg",
+    "isAvailable": true,
+    "isFeatured": true,
+    "showInGallery": true
+  },
+  {
+    "id": "p6",
+    "name": "Rose & Ferrero Box",
+    "category": "Chocolate Bouquets",
+    "description": "Red roses arranged with Ferrero Rocher in a luxury hat box.",
+    "price": "$60",
+    "image": "/images/package-60-ferrero-box.jpeg",
+    "isAvailable": true,
+    "isFeatured": true,
+    "showInGallery": true
+  },
+  {
+    "id": "p7",
+    "name": "Classic Red Mini",
+    "category": "Flower Bouquets",
+    "description": "Compact red rose bouquet with soft white filler and neat wrap.",
+    "price": "$20",
+    "image": "/images/package-20-mini.jpeg",
+    "isAvailable": true,
+    "isFeatured": true,
+    "showInGallery": true
+  },
+  {
+    "id": "p8",
+    "name": "Ivory Rose Mix",
+    "category": "Flower Bouquets",
+    "description": "Red and ivory roses wrapped as a polished romantic bouquet.",
+    "price": "$60",
+    "image": "/images/package-60-ivory-rose.jpeg",
+    "isAvailable": true,
+    "isFeatured": true,
+    "showInGallery": true
+  }
+]

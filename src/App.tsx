@@ -30,7 +30,6 @@ import {
   PHONE_NUMBER, 
   ADDRESS, 
   CATEGORIES, 
-  POPULAR_PACKAGES, 
   GALLERY_IMAGES, 
   TRUST_CARDS,
   OCCASIONS,
@@ -48,10 +47,13 @@ import {
   IMG_WEDDING_2,
   IMG_WEDDING_3,
   IMG_WEDDING_4,
+  WEDDING_GALLERY_IMAGES,
+  FUNERAL_GALLERY_IMAGES,
   FALLBACK_BOUQUET
 } from './assets';
 
 const APP_DATA_KEY = 'winnies_flowers_packages_v3';
+const PACKAGE_DATA_URL = '/packages.json';
 const ADMIN_PASSWORD_HASH = '016b806ff2319d40a738ca345f063f5df05d736e45e76bc4ea04b648e427caed';
 
 export default function App() {
@@ -63,6 +65,7 @@ export default function App() {
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [adminPassword, setAdminPassword] = useState('');
+  const [activeEventType, setActiveEventType] = useState<'weddings' | 'funerals'>('weddings');
   
   // Package Management State
   const [packages, setPackages] = useState<Package[]>([]);
@@ -81,35 +84,59 @@ export default function App() {
 
   // Load packages
   useEffect(() => {
+    const normalizePackages = (data: unknown): Package[] => {
+      if (!Array.isArray(data)) return [];
+
+      return data
+        .filter((pkg): pkg is Partial<Package> => Boolean(pkg) && typeof pkg === 'object')
+        .map((pkg, index) => ({
+          id: String(pkg.id || `pkg_${index}`),
+          name: String(pkg.name || 'Untitled Package'),
+          category: String(pkg.category || PACKAGE_CATEGORIES[0]),
+          description: String(pkg.description || ''),
+          price: String(pkg.price || 'Custom'),
+          image: String(pkg.image || FALLBACK_BOUQUET),
+          isAvailable: pkg.isAvailable ?? true,
+          isFeatured: pkg.isFeatured ?? false,
+          showInGallery: pkg.showInGallery ?? true
+        }));
+    };
+
     const saved = localStorage.getItem(APP_DATA_KEY);
     if (saved) {
       try {
-        setPackages(JSON.parse(saved));
+        const savedPackages = normalizePackages(JSON.parse(saved));
+        if (savedPackages.length > 0) {
+          setPackages(savedPackages);
+          return;
+        }
       } catch (e) {
         console.error('Failed to parse packages', e);
-        setPackages(getDefaultPackages());
       }
-    } else {
-      setPackages(getDefaultPackages());
     }
+
+    fetch(PACKAGE_DATA_URL)
+      .then(response => {
+        if (!response.ok) throw new Error(`Failed to load ${PACKAGE_DATA_URL}`);
+        return response.json();
+      })
+      .then(data => {
+        const sitePackages = normalizePackages(data);
+        setPackages(sitePackages);
+      })
+      .catch(error => {
+        console.error(error);
+        setPackages([]);
+      });
   }, []);
 
-  // Save packages
-  useEffect(() => {
-    if (packages.length > 0) {
-      localStorage.setItem(APP_DATA_KEY, JSON.stringify(packages));
-    }
-  }, [packages]);
-
-  function getDefaultPackages(): Package[] {
-    return POPULAR_PACKAGES.map(pkg => ({
-      ...pkg,
-      category: pkg.category,
-      isAvailable: true,
-      isFeatured: true,
-      showInGallery: true
-    }));
-  }
+  const updatePackages = (updater: Package[] | ((currentPackages: Package[]) => Package[])) => {
+    setPackages(currentPackages => {
+      const nextPackages = typeof updater === 'function' ? updater(currentPackages) : updater;
+      localStorage.setItem(APP_DATA_KEY, JSON.stringify(nextPackages));
+      return nextPackages;
+    });
+  };
 
   const hashPassword = async (password: string) => {
     const bytes = new TextEncoder().encode(password);
@@ -138,14 +165,14 @@ export default function App() {
     }
 
     if (isEditing) {
-      setPackages(prev => prev.map(p => p.id === currentPackage.id ? currentPackage as Package : p));
+      updatePackages(prev => prev.map(p => p.id === currentPackage.id ? currentPackage as Package : p));
       setIsEditing(false);
     } else {
       const newPackage = {
         ...currentPackage,
         id: `pkg_${Date.now()}`
       } as Package;
-      setPackages(prev => [...prev, newPackage]);
+      updatePackages(prev => [...prev, newPackage]);
     }
 
     setCurrentPackage({
@@ -212,8 +239,9 @@ export default function App() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `winnies_flowers_backup_${new Date().toISOString().split('T')[0]}.json`;
+    a.download = 'packages.json';
     a.click();
+    URL.revokeObjectURL(url);
   };
 
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -224,7 +252,7 @@ export default function App() {
         try {
           const data = JSON.parse(ev.target?.result as string);
           if (Array.isArray(data)) {
-            setPackages(data);
+            updatePackages(data);
             alert('Import successful!');
           }
         } catch (e) {
@@ -240,13 +268,13 @@ export default function App() {
 
     if (action === 'delete') {
       if (confirm(`Are you sure you want to delete these ${selectedPackageIds.length} selected packages?`)) {
-        setPackages(prev => prev.filter(p => !selectedPackageIds.includes(p.id)));
+        updatePackages(prev => prev.filter(p => !selectedPackageIds.includes(p.id)));
         setSelectedPackageIds([]);
       }
       return;
     }
 
-    setPackages(prev => prev.map(p => {
+    updatePackages(prev => prev.map(p => {
       if (selectedPackageIds.includes(p.id)) {
         if (action === 'availability') return { ...p, isAvailable: !p.isAvailable };
         if (action === 'category' && value) return { ...p, category: value };
@@ -334,15 +362,11 @@ I saw this on your website and I'm interested in placing an order!`;
     setIsNavOpen(false);
   };
 
-  const readyPackages: Package[] = POPULAR_PACKAGES.map(pkg => ({
-    ...pkg,
-    isAvailable: true,
-    isFeatured: true,
-    showInGallery: true
-  }));
+  const readyPackages = packages.filter(pkg => pkg.isAvailable && pkg.isFeatured);
+  const galleryPackages = packages.filter(pkg => pkg.isAvailable && pkg.showInGallery);
 
   const galleryItems = [
-    ...readyPackages,
+    ...galleryPackages,
     ...GALLERY_IMAGES.map((img, i) => ({ id: `gal_${i}`, image: img }))
   ].filter((item, index, allItems) => {
     const image = 'image' in item ? item.image : item;
@@ -351,6 +375,12 @@ I saw this on your website and I'm interested in placing an order!`;
       return candidateImage === image;
     }) === index;
   });
+
+  const activeEventImages = activeEventType === 'weddings'
+    ? WEDDING_GALLERY_IMAGES
+    : FUNERAL_GALLERY_IMAGES;
+
+  const activeEventLabel = activeEventType === 'weddings' ? 'Wedding' : 'Funeral';
 
   return (
     <div className="min-h-screen text-gray-900 bg-white selection:bg-brand-red selection:text-white">
@@ -546,7 +576,7 @@ I saw this on your website and I'm interested in placing an order!`;
                     onClick={handleExport}
                     className="bg-white hover:bg-gray-50 text-gray-900 px-6 py-3 rounded-xl font-bold text-xs shadow-sm border border-gray-100 transition-colors"
                   >
-                    Export Backup
+                    Export packages.json
                   </button>
                 </div>
               </div>
@@ -728,7 +758,7 @@ I saw this on your website and I'm interested in placing an order!`;
                       <button 
                         onClick={() => {
                           if (confirm('Delete this package permanently?')) {
-                            setPackages(prev => prev.filter(p => p.id !== pkg.id));
+                            updatePackages(prev => prev.filter(p => p.id !== pkg.id));
                           }
                         }}
                         className="flex-1 bg-white border border-gray-100 py-3 rounded-xl text-[10px] font-bold uppercase text-gray-300 hover:text-brand-red hover:border-brand-red transition-colors"
@@ -1191,28 +1221,36 @@ I saw this on your website and I'm interested in placing an order!`;
                 <div className="flex flex-wrap gap-4">
                   <button 
                     onClick={() => {
+                      setActiveEventType('weddings');
                       setFormData(prev => ({ 
                         ...prev, 
                         occasion: 'Wedding', 
                         packageType: 'Wedding Flowers' 
                       }));
-                      scrollToSection('home');
                     }}
-                    className="bg-brand-red text-white px-10 py-5 rounded-lg font-bold text-lg hover:bg-brand-red-dark transition-all shadow-2xl shadow-brand-red/30 inline-flex items-center group-hover:scale-105"
+                    className={`px-10 py-5 rounded-lg font-bold text-lg transition-all shadow-2xl inline-flex items-center ${
+                      activeEventType === 'weddings'
+                        ? 'bg-brand-red text-white shadow-brand-red/30'
+                        : 'bg-white text-gray-900 border-2 border-gray-200 hover:border-brand-red hover:text-brand-red shadow-gray-100'
+                    }`}
                   >
                     Weddings & Events
                     <ChevronRight className="w-5 h-5 ml-2" />
                   </button>
                   <button 
                     onClick={() => {
+                      setActiveEventType('funerals');
                       setFormData(prev => ({ 
                         ...prev, 
                         occasion: 'Funeral', 
-                        packageType: 'Funeral Tributes' 
+                        packageType: 'Funeral Flowers' 
                       }));
-                      scrollToSection('home');
                     }}
-                    className="border-2 border-gray-200 text-gray-900 px-10 py-5 rounded-lg font-bold text-lg hover:border-brand-red hover:text-brand-red transition-all inline-flex items-center"
+                    className={`px-10 py-5 rounded-lg font-bold text-lg transition-all inline-flex items-center ${
+                      activeEventType === 'funerals'
+                        ? 'bg-brand-red text-white shadow-2xl shadow-brand-red/30'
+                        : 'border-2 border-gray-200 text-gray-900 hover:border-brand-red hover:text-brand-red'
+                    }`}
                   >
                     Funeral Flowers
                   </button>
@@ -1221,17 +1259,41 @@ I saw this on your website and I'm interested in placing an order!`;
               <div className="lg:w-13/25 relative">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-4">
-                    <img src={IMG_WEDDING_1} loading="lazy" decoding="async" onError={handleImageError} className="rounded-2xl shadow-2xl w-full h-full object-cover" alt="Bridal prep" />
-                    <img src={IMG_WEDDING_2} loading="lazy" decoding="async" onError={handleImageError} className="rounded-2xl shadow-2xl w-full h-full object-cover" alt="Wedding bouquet" />
+                    <img src={activeEventImages[0] || IMG_WEDDING_1} loading="lazy" decoding="async" onError={handleImageError} className="rounded-2xl shadow-2xl w-full h-full object-cover" alt={`${activeEventLabel} flowers feature 1`} />
+                    <img src={activeEventImages[1] || IMG_WEDDING_2} loading="lazy" decoding="async" onError={handleImageError} className="rounded-2xl shadow-2xl w-full h-full object-cover" alt={`${activeEventLabel} flowers feature 2`} />
                   </div>
                   <div className="pt-12 space-y-4">
-                    <img src={IMG_WEDDING_3} loading="lazy" decoding="async" onError={handleImageError} className="rounded-2xl shadow-2xl w-full h-full object-cover" alt="Ceremony decor" />
-                    <img src={IMG_WEDDING_4} loading="lazy" decoding="async" onError={handleImageError} className="rounded-2xl shadow-2xl w-full h-full object-cover" alt="Reception flowers" />
+                    <img src={activeEventImages[2] || IMG_WEDDING_3} loading="lazy" decoding="async" onError={handleImageError} className="rounded-2xl shadow-2xl w-full h-full object-cover" alt={`${activeEventLabel} flowers feature 3`} />
+                    <img src={activeEventImages[3] || IMG_WEDDING_4} loading="lazy" decoding="async" onError={handleImageError} className="rounded-2xl shadow-2xl w-full h-full object-cover" alt={`${activeEventLabel} flowers feature 4`} />
                   </div>
                 </div>
                 {/* Architectural background lines */}
                 <div className="absolute -z-10 top-0 right-0 w-64 h-64 border-t-2 border-r-2 border-brand-red/10 rounded-tr-[4rem]"></div>
               </div>
+            </div>
+
+            <div className="mt-24 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              {activeEventImages.map((image, i) => (
+                <motion.div
+                  key={image}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  initial={{ opacity: 0, y: 20 }}
+                  transition={{ delay: i * 0.04 }}
+                  viewport={{ once: true }}
+                  className={`overflow-hidden rounded-2xl bg-gray-100 shadow-lg ${
+                    i === 0 || i === 7 ? 'md:col-span-2 md:row-span-2' : ''
+                  }`}
+                >
+                  <img
+                    src={image}
+                    loading="lazy"
+                    decoding="async"
+                    onError={handleImageError}
+                    alt={`${activeEventLabel} flowers ${i + 1}`}
+                    className="h-full min-h-48 w-full object-cover transition-transform duration-700 hover:scale-105"
+                  />
+                </motion.div>
+              ))}
             </div>
           </div>
         </section>
